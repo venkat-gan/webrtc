@@ -4,11 +4,11 @@ var server = require('http').createServer()
   , wss = new WebSocketServer({ server: server })
   , express = require('express')
   , app = express()
+  , path = require('path')
   , port = 4080;
 
-app.use(function (req, res) {
-  res.send({ msg: "hello" });
-});
+
+app.use('/',express.static('dist'));
 
 wss.on('connection', function connection(ws) {
   var location = url.parse(ws.upgradeReq.url, true);
