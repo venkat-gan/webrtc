@@ -53,11 +53,13 @@ export const webSocketClient = ( webSocket ) => {
     subscribe
   }
 }
-
-if ("geolocation" in navigator) {
-  navigator.geolocation.getCurrentPosition(function(position) {
-    console.log(position)
-  })
-} else {
-  /* geolocation IS NOT available */
+export function getGeolocation(navigator,cb){
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      console.log(position)
+      cb(position)
+    })
+  } else {
+    /* geolocation IS NOT available */
+  }
 }
