@@ -1,10 +1,10 @@
 import EventEmitter from 'events';
 export default class MockWebSocket extends EventEmitter{
-  send(msg){
-    return msg;
+  constructor(){
+    super();
+    this.on('onmessage',(e)=>this.onmessage(e))
   }
-}
-MockWebSocket.attachEvents=function(client){
-  client.on('onopen',client.onopen)
-  client.on('onmessage',client.onmessage)
+  send(msg){
+     this.lastSend=JSON.parse(msg);
+  }
 }
