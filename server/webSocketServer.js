@@ -89,7 +89,8 @@ export function createWebsocketServer(clients = {}){
 
       return {
         send,
-        onConnection
+        onConnection,
+        getClients : ()=>clients
       };
   }
 }

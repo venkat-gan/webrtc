@@ -4,6 +4,7 @@ import express from 'express';
 import http from 'http';
 import {Server as webSocketServer} from 'ws';
 import WebSocket from 'ws';
+import {emitter} from './../server/eventemitter';
 
 describe('peerServer specifications::',()=>{
   var option;
@@ -183,4 +184,30 @@ describe('peerServer specifications::',()=>{
         expect(peers[clientID].coordinates).to.eql('sample');
     });
   });
+
+  describe('Event Emitter specifications:::',()=>{
+    var candidates;
+    var TestEmitter;
+    beforeEach(()=>{
+      candidates = [];
+      TestEmitter = {
+         onMessage(data){
+           candidates.push(data);
+         },
+
+         onConnection(data){
+           candidates.push(data);
+         }
+       }
+      emitter.addListners(TestEmitter);
+    });
+
+    it('should emit onConnection event during handling connection',()=>{
+      const query = { id: 111, coordinates: 'sample'};
+      let clients = {};
+      let{clientID,peers,message} = handleConnection(query,'sampleSocket',clients);
+      expect(candidates).to.eql([ { '111': { socket: 'sampleSocket', coordinates: 'sample' } } ]);
+    })
+
+  })
 });

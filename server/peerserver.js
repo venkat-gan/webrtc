@@ -1,46 +1,19 @@
 import express from 'express';
 import http from 'http';
 import url from 'url';
+import {emitter} from './eventemitter';
 
 /*
 (TODO:Ravi)
 
 */
-////////////////////////////////////////////////////////////////////////////*(TODO:ADD MIDDLEWARE)*//////////
-export function createPeerServer(option,server){
-  return function (socketServer){
-
-      let{ send, eventHandlers } = socketServer(option);
-
-      let {onMessage, onClose,onConnection} = eventHandlers();
-
-      return{
-          onMessage,
-          onClose,
-          onConnection
-      }
-  }
-}
-
-
-export function applyMiddleWare(...middleware){
-    return (createServer)=>(server)=>{
-      var {onMessage,onClose,onConnection} = createServer(server);
-
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////*(TODO:ADD MIDDLEWARE)*//////////
-
-
-
 
 const peerserver = (option) => (socketServer) => {
-      let{ send, onConnection } = socketServer(option);
+      let{ send, onConnection} = socketServer(option);
       let {onMessage, onClose } = onConnection(handleConnection);
       onMessage(handleTransaction);
       onClose(handleClosingConnection);
-  }
+}
 
 export function handleClosingConnection(peers,clientID){
     delete peers[clientID];
@@ -117,10 +90,13 @@ export function handleConnection(query,socket,peers){
     client.socket = socket;
     client.coordinates = coordinates;
     let message = JSON.stringify({ type: 'OPEN', clientID: id});
+    peers= Object.assign({},peers,{[id]:client});
+
+    emitter.onConnection(peers); //Emit event
 
     return{
       clientID: id,
-      peers: Object.assign({},peers,{[id]:client}),
+      peers,
       message
     };
 
