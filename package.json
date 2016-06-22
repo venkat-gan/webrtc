@@ -4,8 +4,8 @@
   "description": "webrtc try",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
-    "start": "node wsserver",
+    "build": "webpack --config webpack.config.js --watch",
+    "start": "node server",
     "test": "mocha test --compilers js:babel-register"
   },
   "author": "",

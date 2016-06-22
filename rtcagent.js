@@ -1,15 +1,29 @@
-import { webSocketClient } from './wsclient';
+import { webSocketClient,getGeolocation } from './wsclient';
 import curry from 'lodash/curry';
-export const rtcagent = curry((webSocket,RTCPeerConnection) => {
+
+export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
+
   var createOfferConnection=null;
   var createAnswerConnection=null;
-  var webSocketClientObj=new webSocketClient(webSocket);
-  var pm=PeerConnectionManager(RTCPeerConnection);
-  webSocketClientObj.subscribe('ID',function(msg){
-    webSocketClientObj.sendObject({type:"position"});
-  })
-  webSocketClientObj.subscribe('CHILD_CHANGE',function(msg){
-    webSocketClientObj.sendObject({type:"position"});
+  var webSocketClientObj=null;
+  const locationMontior=getGeolocation(navigator);
+  locationMontior(function(position){
+    if(position){
+      if(!webSocketClientObj){
+        const webSocket = new WebSocket(`wss://localhost:9090/rtcserver?lat=${position.coords.latitude}&long=${position.coords.longitude}`)
+        webSocketClientObj=new webSocketClient(webSocket);
+      }
+      else{
+        webSocketClientObj.sendObject({type:"updatelocation",coords:{lat:position.coords.latitude,long:position.coords.longitude}});
+      }
+      var pm=PeerConnectionManager(RTCPeerConnection);
+      webSocketClientObj.subscribe('ID',function(msg){
+
+      })
+      webSocketClientObj.subscribe('CHILD_CHANGE',function(msg){
+
+      })
+    }
   })
 })
 

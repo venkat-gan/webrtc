@@ -13,6 +13,8 @@ var https = require('https');
 var fs = require('fs');
 var key = fs.readFileSync('./hacksparrow-key.pem');
 var cert = fs.readFileSync('./hacksparrow-cert.pem')
+var WebSocketServer = require('ws').Server;
+var url = require('url')
 
 var https_options = {
     key: key,
@@ -22,9 +24,23 @@ var https_options = {
 var app = express();
 var compiler = webpack(config);
 
+
 app.use(express.static("./dist/js"));
 
 app.get('*', function(req, res) {
   res.sendFile(path.join(__dirname, 'dist','index.html'));
 });
-var server = https.createServer(https_options, app).listen(9090, 'localhost');
+var server = https.createServer(https_options, app);
+var wss = new WebSocketServer({ server: server })
+wss.on('connection', function connection(ws) {
+  var location = url.parse(ws.upgradeReq.url, true);
+
+
+  ws.on('message', function incoming(message) {
+    console.log('received: %s', message);
+  });
+
+  ws.send('something');
+});
+
+server.listen(9090, 'localhost')

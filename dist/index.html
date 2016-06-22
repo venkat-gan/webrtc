@@ -4,42 +4,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/adapterjs/0.13.3/adapter.min.js"></script>
     <script src="./client.min.js"></script>
     <script>
-    AdapterJS.webRTCReady(function(isUsingPlugin ){
-        var RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-        //var RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription;
-        window.localConnection = new RTCPeerConnection();
-        window.remoteConnection = new RTCPeerConnection();
-        window.sendChannel =localConnection.createDataChannel('sendDataChannel',null)
-        localConnection.onicecandidate = function(e){
-         //   console.log("icecandidate",e);
-             console.log(JSON.stringify(e.candidate))
-        };
-         remoteConnection.onicecandidate = function(e){
-            console.log("remote icecandidate",e.candidate);
-             console.log(JSON.stringify(e.candidate))
-
-        };
-        localConnection.createOffer().then(function(des){
-            localConnection.setLocalDescription(des);
-            console.log(JSON.stringify(des))
-        },function(e){
-            console.log(e)
-        });
-        window.remote_descr = new RTCSessionDescription();
-        remote_descr.type = "offer";
-        //window.sendChannel = localConnection.createDataChannel('sendDataChannel');
-      //  console.log(localConnection.localDescription )
-
-         // sendChannel.onopen = onSendChannelStateChange;
-      //  sendChannel.onclose = onSendChannelStateChange;
-       // sendChannel.onmessage = onReceiveMessageCallback;
-
-
-      //  window.remoteConnection  = new RTCPeerConnection();
-      //  remoteConnection.onicecandidate = iceCallback2;
-      //  remoteConnection.ondatachannel = receiveChannelCallback;
-
-    })
+      console.log(WebRTC);
+      WebRTC.rtcAgent(navigator,WebSocket,RTCPeerConnection); 
     </script>
 </body>
 </html>
