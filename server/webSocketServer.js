@@ -10,37 +10,10 @@ export default function webSocketServer(option){
 export function createWebsocketServer(clients = {}){
 
   return function(webSocket){
-      function send(cb){
-            return webSocket.send(cb());
-      }
+        function send(cb){
+              return webSocket.send(cb());
+        }
 
-////////////////////////////////////////////////////////////NEEEEEW
-      function eventHandlers(){
-          let onMessageCallback;
-          let onCloseCallback;
-          let connectionCB;
-
-          webSocket.on('connection',(socket)=>{
-
-            let query = url.parse(socket.upgradeReq.url, true).query;
-            let {clientID,peers: clients,message} = connectionCB(query,socket,clients);
-            clients = peers;
-            socket.send(message);
-            onMessage(socket,clientID)(onMessageCallback);
-            onClose(socket,clientID)(onCloseCallback);
-          });
-
-
-
-          return {
-             onConnection:(cb)=>{connectionCB = cb},
-             onMessage:(cb)=>{onMessageCallback = cb},
-             onClose: (cb)=>{onCloseCallback = cb}
-          }
-      };
-
-
-      //////////////////////////////////////////////////////////////
         function onConnection(connectionCB){
           let onMessageCallback;
           let onCloseCallback;

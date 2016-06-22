@@ -2,7 +2,8 @@ import express from 'express';
 import http from 'http';
 import url from 'url';
 import {emitter} from './eventemitter';
-
+import graph,{haversineDistanceGraph} from './graph';
+import {primMST} from './minimumSpanningTree'
 /*
 (TODO:Ravi)
 
@@ -35,9 +36,10 @@ export function handleTransaction(transactionType,data,peers){
         if(transactionType === 'DESTINATION_CLIENT_LEFT'){
             delete peers[dst];
             if(src){
-              let payload = JSON.stringify( {
+              let payload = JSON.stringify({
                 type:'PEER_LEFT',
                 dst: src
+
               });
               return {
                 socket: peers[src].socket,
@@ -114,5 +116,45 @@ export function generateUniqueID (clients){
 export function generateRandomID(){
     return Math.floor(100000 + Math.random() * 900000);
 };
+
+export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=>(handleTransaction)=>({
+  onConnection: (peers)=>{
+    try{
+      for (var id in peers) { peerStore[id] = peers[id]; }
+
+      let peerGraph = graph();
+      let {addNode,removeNode,getNodes} = haversineDistanceGraph()(peerGraph);
+      Object.keys(peerStore).forEach((peer)=>addNode(peerStore[peer]));
+      let mst = primMST(peerGraph);
+      let nodes = getNodes();
+
+      //send the new peers to each other according to mst
+      nodes.forEach((srcNode,index)=>{
+        if(index == 0){
+          return; // TODO: skip it beacuse it is the root node. Handle it better you FOOL
+        }
+
+        let dst = mst[srcNode.getVertexId()]
+        let dstNode = nodes[dst];
+        handleTransaction(srcNode.getName(),dstNode.getName());
+      });
+
+      return {
+        getNodes
+      };
+    }catch(e){
+      console.log(e);
+      throw e;
+    }finally{
+    }
+  }
+});
+
+export const socketTransaction = (srcNode,dstNode)=>{
+  srcNode.socket.send({
+    type:'PEER',
+    payload: dstNode['name']
+  });
+}
 
 export default peerserver;
