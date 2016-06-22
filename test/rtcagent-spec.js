@@ -1,9 +1,16 @@
 import expect from 'expect';
-import { rtcagent,PeerConnectionManager } from '../rtcagent';
+import { rtcAgent,PeerConnectionManager } from '../rtcagent';
 import MockWebSocket from "./MockWebSocket";
 var mockWebSocket=new MockWebSocket()
 var mockPeerConnection=new MockWebSocket()
-rtcagent(mockWebSocket,mockPeerConnection);
+var mockNavigator={
+  getGeolocation:{
+    getCurrentPosition:function(cb){
+      cb("test")
+    }
+  }
+}
+rtcAgent(mockNavigator,MockWebSocket,mockPeerConnection);
 describe('RTCAgent', function () {
   it('RTCAgent message', function () {
     mockWebSocket.emit('onmessage',{message:{type:"CHILD_CHANGE",childIds:[1]}});
