@@ -1,9 +1,10 @@
 import expect from 'expect.js';
-import peerserver,{generateUniqueID,handleTransaction,handleClosingConnection,handleConnection} from './../server/peerserver';
+import peerserver,{generateUniqueID,handleTransaction,handleClosingConnection,handleConnection,peerServerEventListner,socketTransaction} from './../server/peerserver';
 import express from 'express';
 import http from 'http';
 import {Server as webSocketServer} from 'ws';
 import WebSocket from 'ws';
+import eventemitter,{emitter} from './../server/eventemitter';
 
 describe('peerServer specifications::',()=>{
   var option;
@@ -183,4 +184,67 @@ describe('peerServer specifications::',()=>{
         expect(peers[clientID].coordinates).to.eql('sample');
     });
   });
+
+  describe('Event Emitter specifications:::',()=>{
+    var candidates;
+    var TestEmitter;
+    beforeEach(()=>{
+      candidates = [];
+      TestEmitter = {
+         onMessage(data){
+           candidates.push(data);
+         },
+
+         onConnection(data){
+           candidates.push(data);
+         }
+       }
+      emitter.addListners(TestEmitter);
+    });
+
+    it('should emit onConnection event during handling connection',()=>{
+      const query = { id: 111, coordinates: 'sample'};
+      let clients = {};
+      let{clientID,peers,message} = handleConnection(query,'sampleSocket',clients);
+      expect(candidates).to.eql([ { '111': { socket: 'sampleSocket', coordinates: 'sample' } } ]);
+    })
+
+  });
+
+  describe('Peer Server Listner specifications :::',()=>{
+    let emitter
+    beforeEach(()=>{
+     emitter = new eventemitter();
+    });
+    function is_equal(array1,array2){
+      if(array1.length != array2.length){
+        return false;
+      }
+      return array2.every((element,index)=>element===array1[index]);
+    }
+
+    it('Should add event listner',()=>{
+      let listner = peerServerEventListner()(()=>{});
+      emitter.addListners(listner);
+      const actualListners = emitter.getEventListners();
+      const expectedListners = [listner];
+      expect(is_equal(actualListners,expectedListners)).to.be.ok();
+    });
+
+    it('Should add graph nodes',()=>{
+      let listner = peerServerEventListner()(()=>{});
+      let {getNodes}= listner.onConnection({1:{name:1,coordinates:{lat:52.205,long:0.119}},
+        0: {name:0,coordinates:{lat:48.857,long:2.351}},
+        2: {name:2,coordinates:{lat:48.857,long:2.351}}
+      });
+      expect(getNodes().length).to.eql(3);
+    })
+
+  })
+
+  describe('FULL PEERSERVER SCENARIO with WebSocketSever::::',()=>{
+    it('Should work',()=>{
+
+    })
+  })
 });

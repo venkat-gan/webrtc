@@ -40,4 +40,11 @@ export default class eventemitter {
   onMessage(data){
     this.emitEvent('onMessage',data);
   }
+
+  onConnection(clients){
+    this.emitEvent('onConnection',clients);
+  }
 }
+
+
+export const emitter = new eventemitter();

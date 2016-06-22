@@ -1,5 +1,6 @@
 import expect from 'expect.js';
 import {createWebsocketServer}  from './../server/webSocketServer';
+import {handleConnection} from './../server/peerserver'
 
 describe('Websocket server specifications::',()=>{
   var webSocketServer;
@@ -162,6 +163,7 @@ describe('Websocket server specifications::',()=>{
     var calledCloseCallback;
     var socketStub;
     var sentMessages;
+    var storedClients;
     beforeEach(()=>{
       expectedEvents = {};
       sentMessages = [];
@@ -197,13 +199,65 @@ describe('Websocket server specifications::',()=>{
           }
         }
       }
-
     });
-
     it('should call the on close callback for this event',()=>{
       testServer.emit('connection',socketStub);
       socketStub.emit('close');
       expect(calledCloseCallback).to.be.ok();
+
+    });
+  });
+
+  describe('stored Clients :: ',()=>{
+    var expectedEvents;
+    var calledCloseCallback;
+    var socketStub;
+    var sentMessages;
+    var storedClients;
+    beforeEach(()=>{
+      expectedEvents = {};
+      sentMessages = [];
+      testServer.clearEvent() //clean up previous datas
+
+      let {send , onConnection, getClients} = createWebsocketServer()(testServer);
+      let{onMessage, onClose} = onConnection(handleConnection);
+      onMessage(()=>{});
+      onClose(()=>{calledCloseCallback = true
+        return {
+          peers: []
+        }
+      });
+      socketStub = {upgradeReq:{
+        url:'?id=123456&coordinates=sample'
+        },
+        send:(message)=>{
+          sentMessages.push(message);
+        },
+        on: (eventName,cb)=>{
+          expectedEvents[eventName]= cb;
+        },
+
+        emit: (eventName,message)=>{
+          if(message){
+            expectedEvents[eventName](message);
+          }else{
+            expectedEvents[eventName]();
+          }
+        }
+      }
+
+      storedClients = getClients;
+    });
+
+    it('should return the clients list on emitting connection',()=>{
+      testServer.emit('connection',socketStub);
+      expect(storedClients()['123456']).to.be.ok();
+    });
+
+    it('should return the clients list on emitting onclose',()=>{
+      testServer.emit('connection',socketStub);
+      socketStub.emit('close');
+      expect(storedClients()['123456']).to.not.be.ok();
     });
   });
 });

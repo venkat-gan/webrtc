@@ -1,12 +1,12 @@
 import {
-    compose2, compose
+    compose2, compose,computeHaversineDistance
 }
 from './utils';
 
 export const createNode = (name) => {
     let adjList = [];
     let weights = [];
-
+    let vertexId;
 
     return {
         addEdge: (neighbour, weight) => {
@@ -16,7 +16,9 @@ export const createNode = (name) => {
         getEdges: () => adjList,
         getWeights: () => weights,
         setEdges: (edgelist) => (adjList=edgelist),
-        getName: () => name
+        getName: () => name,
+        setVertexId: (id)=>(vertexId=id),
+        getVertexId: ()=>vertexId
     };
 
 };
@@ -28,7 +30,7 @@ export default () => {
 
 
     const isNameNotEqual = (name,value) => {
-      if(typeof(value.getName()) === "object"){console.log(value.getName()['name'])
+      if(typeof(value.getName()) === "object"){
           return value.getName()['name'] !== name;}
       else {
           return value.getName() !== name;
@@ -56,7 +58,7 @@ export default () => {
 }
 
 
-export const haversineDistanceGraph = (computeHaversineDistance) => (graph) =>{
+export const haversineDistanceGraph = (haversineDistance = computeHaversineDistance) => (graph) =>{
   const lookUp  = {};
   const addNode = (name) => {
       let prevNodes = Object.assign([],graph.getNodes());
@@ -64,7 +66,7 @@ export const haversineDistanceGraph = (computeHaversineDistance) => (graph) =>{
       let srcCoord = srcNode.getName()['coordinates'];
       let srcLat   = srcCoord.lat;
       let srcLong  = srcCoord.long;
-      var distance = computeHaversineDistance(srcLat,srcLong);
+      var distance = haversineDistance(srcLat,srcLong);
       prevNodes.forEach((tarNode)=>{
         let {lat:targetLat,long:targetLong} = tarNode.getName()['coordinates'];
 
