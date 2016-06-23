@@ -32,7 +32,7 @@ export function handleTransaction(transactionType,data,peers){
         let type = message.type;
         let src = message.src;
         let dst = message.dst;
-
+        console.log(src);
         if(transactionType === 'DESTINATION_CLIENT_LEFT'){
             delete peers[dst];
             if(src){
@@ -52,7 +52,7 @@ export function handleTransaction(transactionType,data,peers){
         let destinationClient = peers[dst];
         if(destinationClient){
           let payload = JSON.stringify(message);
-
+          console.log(payload);
           return {
             peers,
             payload,
@@ -92,6 +92,7 @@ export function handleConnection(query,socket,peers){
 
     id = id?id:generateUniqueID(peers);
     let client = peers[id]?peers[id]:{};
+    client.name = id;
     client.socket = socket;
     client.coordinates = {
       lat,
@@ -126,6 +127,7 @@ export function generateRandomID(){
 
 export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=>(handleTransaction)=>({
   onConnection: (peers)=>{
+
     try{
       let childPeers = {};
       for (var id in peers) { peerStore[id] = peers[id]; }
@@ -135,7 +137,7 @@ export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=
       Object.keys(peerStore).forEach((peer)=>addNode(peerStore[peer]));
       let mst = primMST(peerGraph);
       let nodes = getNodes();
-
+      console.log(mst,'MST');
 
 
       nodes.forEach((srcNode,index)=>{
@@ -146,15 +148,19 @@ export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=
         let dstNode = nodes[dst];
         let client = childPeers[index]?childPeers[index]:{};
         client[dst] = dstNode;
+        childPeers[index]=client;
       });
-
+      console.log(childPeers);
       //send the new peers to each other according to mst
       Object.keys(childPeers).forEach((childs,index)=>{
-        srcNode = nodes[index];
-        let childList = [];
+        let srcNode = nodes[childs];
+        var childList = [];
         Object.keys(childs).forEach((peer)=>{
-          childList.push(peer.getName()['name']);
+          console.log(nodes[peer].getName(),'inside');
+          childList.push(nodes[peer].getName()['name']);
         });
+        console.log(srcNode.getName(),'list');
+
         handleTransaction(srcNode.getName(),childList);
       });
 
@@ -171,6 +177,7 @@ export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=
 });
 
 export const socketTransaction = (srcNode,childList)=>{
+  console.log(srcNode,'trans');
   if(childList.length ==0){
     return;
   }
