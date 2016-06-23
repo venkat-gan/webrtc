@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-  entry: './rtcagent',
+  entry: './client/index',
   module: {
     loaders: [
       {

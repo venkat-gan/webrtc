@@ -1,4 +1,4 @@
-import { webSocketClient,getGeolocation } from './wsclient';
+import { webSocketClient,getGeolocation,OPEN ,PEER,OFFER,ANSWER} from './wsclient';
 import curry from 'lodash/curry';
 
 export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
@@ -17,25 +17,51 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
         webSocketClientObj.sendObject({type:"updatelocation",coords:{lat:position.coords.latitude,long:position.coords.longitude}});
       }
       var pm=PeerConnectionManager(RTCPeerConnection);
-      webSocketClientObj.subscribe('ID',function(msg){
+      webSocketClientObj.subscribe(OPEN,function(){
+      })
+      webSocketClientObj.subscribe(PEER,function(msg){
+        var peerIds = webSocketClientObj.getPeers();
+        peerIds.forEach((peerId)=>{
+          var connection=pm(peerId);
+          connection.createOffer().then(function(sdp) {
+            connection.setLocalDescription(sdp);
+            webSocketClientObj.sendObject({type:OFFER,src:webSocketClientObj.getId(),dest:peerId,sdp:sdp});
+          },(e)=>{console.log(e)});
+
+        })
+      })
+      webSocketClientObj.subscribe(OFFER,function(){
+        var connection = pm(peerId);
+        var offer = webSocketClientObj.getOffer();
+        connection.setRemoteDescription(offer.sdp);
+        connection.createAnswer().then(function(sdp) {
+          connection.setLocalDescription(sdp);
+          webSocketClientObj.sendObject({type:ANSWER,src:webSocketClientObj.getId(),dest:offer.src,sdp:sdp});
+        },(e)=>{console.log(e)});
 
       })
-      webSocketClientObj.subscribe('CHILD_CHANGE',function(msg){
-
+      webSocketClientObj.subscribe(ANSWER,function(msg){
+        var connection = pm(peerId);
+        var offer = webSocketClientObj.getOffer();
+        connection.setRemoteDescription(offer.sdp);
       })
+      function PeerConnectionManager(RTCPeerConnection){
+        var peerConnections={};
+        return (id)=>{
+          if(!peerConnections[id]){
+              peerConnections[id]=new RTCPeerConnection()
+          }
+          peerConnections[id].onicecandidate = function (evt) {
+             webSocketClientObj.send(JSON.stringify({ type:CANDIDATE, candidate:evt.candidate,src:webSocketClientObj.getId(),dest:id }));
+         };
+          return peerConnections[id];
+        }
+      }
+
     }
   })
 })
 
-export function PeerConnectionManager(RTCPeerConnection){
-  var peerConnections={};
-  return (id)=>{
-    if(!peerConnections[id]){
-        peerConnections[id]=new RTCPeerConnection()
-    }
-    return peerConnections[id];
-  }
-}
 
 /*
 var agent=new webClient(new WebSocket('url'));

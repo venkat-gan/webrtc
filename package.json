@@ -2,7 +2,7 @@
   "name": "webrtc",
   "version": "1.0.0",
   "description": "webrtc try",
-  "main": "index.js",
+  "main": "./client/index.js",
   "scripts": {
     "build": "webpack --watch",
     "start": "babel-node server",

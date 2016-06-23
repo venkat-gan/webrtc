@@ -1,14 +1,18 @@
 import EventEmitter from 'events';
 import isEqual  from 'lodash/isEqual';
-export const ID="ID",CHILD_CHANGE="CHILD_CHANGE",PARENT_CHANGE="PARENT_CHANGE";
+export const OPEN="OPEN",PEER="PEER",OFFER="OFFER",ANSWER="ANSWER";
 export const webSocketClient = ( webSocket ) => {
   var id=null,
-      childIds=[],
-      parentId=null,
+      peerIds=[],
+      offer={
+        id:"-1",
+        sdp:null
+      },
       listeners={
-        [ID]:[],
-        [CHILD_CHANGE]:[],
-        [PARENT_CHANGE]:[]
+        [OPEN]:[],
+        [PEER]:[],
+        [OFFER]:[],
+        [ANSWER]:[]
       };
 
   const subscribe=(type,fn)=>{
@@ -17,19 +21,20 @@ export const webSocketClient = ( webSocket ) => {
   }
 
   webSocket.onmessage=(e)=>{
-    var msg=e.message;
+    var msg=JSON.parse(e.data);
+    console.log(msg)
     if(!msg) return;
     switch(msg.type){
-      case ID:
-        id=msg.id;
+      case OPEN:
+        id=msg.clientID;
       break
-      case CHILD_CHANGE:
-          childIds=msg.childs;
+      case PEER:
+        peerIds=msg.peers;
+      case OFFER:
+        offer=msg.offer;
       break;
-      case PARENT_CHANGE:
-        if(parentId != msg.parentId){
-          parentId=msg.parentId;
-        }
+      case ANSWER:
+
       break;
       default:
       return;
@@ -39,11 +44,11 @@ export const webSocketClient = ( webSocket ) => {
     })
   }
   return {
-    getChildId(){
-      return childIds
+    getPeers(){
+      return peerIds;
     },
-    getParentId(){
-      return parentId;
+    getOffer(){
+      return offer;
     },
     getId(){
       return id
