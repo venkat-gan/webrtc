@@ -5,7 +5,7 @@ var server = require('http').createServer()
   , express = require('express')
   , app = express()
   , path = require('path')
-  , config = require('./webpack.config'),
+  , config = require('./webpack.config')
   , port = 4080;
 
 

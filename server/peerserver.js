@@ -78,19 +78,23 @@ export function handleTransaction(transactionType,data,peers){
 
 export function handleConnection(query,socket,peers){
     let id = query.id;
-    let coordinates = query.coordinates;
-
-    if(!coordinates){
+    let lat = query.lat;
+    let long = query.long;
+    
+    if(!lat && !long){
       return {
         peers,
-        message: { type: 'ERROR', description:'Client need to provide the current coordinates'}
+        message: JSON.stringify({ type: 'ERROR', description:'Client need to provide the current coordinates'})
       };
     };
 
     id = id?id:generateUniqueID(peers);
     let client = peers[id]?peers[id]:{};
     client.socket = socket;
-    client.coordinates = coordinates;
+    client.coordinates = {
+      lat,
+      long
+    }
     let message = JSON.stringify({ type: 'OPEN', clientID: id});
     peers= Object.assign({},peers,{[id]:client});
 
@@ -107,6 +111,7 @@ export function handleConnection(query,socket,peers){
 
 export function generateUniqueID (clients){
   let randomNumber = generateRandomID();
+  console.log(randomNumber);
   while(clients[randomNumber]){
     randomNumber = generateRandomID();
   }

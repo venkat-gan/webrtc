@@ -228,7 +228,7 @@ describe('Websocket server specifications::',()=>{
         }
       });
       socketStub = {upgradeReq:{
-        url:'?id=123456&coordinates=sample'
+        url:'?id=123456&lat=0&long=1'
         },
         send:(message)=>{
           sentMessages.push(message);

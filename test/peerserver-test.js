@@ -170,18 +170,18 @@ describe('peerServer specifications::',()=>{
 
   describe('Handling OnConnection',()=>{
     it('should send a message that socket is open along with the clientID',()=>{
-        const query = { id: 111, coordinates: 'sample'};
+        const query = { id: 111,lat:0,long:1};
         let clients = {};
         let{clientID,peers,message} = handleConnection(query,'sampleSocket',clients);
         expect(message).to.eql(JSON.stringify({type: 'OPEN', clientID: clientID}));
     });
 
     it('should return the socket for that particular client',()=>{
-        const query = { id: 111, coordinates: 'sample'};
+        const query = { id: 111,lat:0,long:1};
         let clients = {};
         let{clientID,peers,message} = handleConnection(query,'sampleSocket',clients);
         expect(clientID).to.be.a('number');
-        expect(peers[clientID].coordinates).to.eql('sample');
+        expect(peers[clientID].coordinates).to.eql({lat:0,long:1});
     });
   });
 
@@ -203,10 +203,10 @@ describe('peerServer specifications::',()=>{
     });
 
     it('should emit onConnection event during handling connection',()=>{
-      const query = { id: 111, coordinates: 'sample'};
+      const query = { id: 111, lat:0,long:1};
       let clients = {};
       let{clientID,peers,message} = handleConnection(query,'sampleSocket',clients);
-      expect(candidates).to.eql([ { '111': { socket: 'sampleSocket', coordinates: 'sample' } } ]);
+      expect(candidates).to.eql([ { '111': { socket: 'sampleSocket', coordinates: {lat:0,long:1} } } ]);
     })
 
   });
@@ -240,11 +240,5 @@ describe('peerServer specifications::',()=>{
       expect(getNodes().length).to.eql(3);
     })
 
-  })
-
-  describe('FULL PEERSERVER SCENARIO with WebSocketSever::::',()=>{
-    it('Should work',()=>{
-
-    })
-  })
+  });
 });
