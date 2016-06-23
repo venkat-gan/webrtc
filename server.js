@@ -42,4 +42,3 @@ var server = https.createServer(https_options, app).listen(9090, 'localhost');
 //peerserver
 let brokerServer = peerserver({server});
 brokerServer(webSocketServer);
->>>>>>> Stashed changes
