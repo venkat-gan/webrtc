@@ -30,7 +30,7 @@ export function handleTransaction(transactionType,data,peers){
     let message = JSON.parse(data);
     if (['LEAVE', 'CANDIDATE', 'OFFER', 'ANSWER'].indexOf(message.type) !== -1) {
         let type = message.type;
-        let src = message.id;
+        let src = message.src;
         let dst = message.dst;
 
         if(transactionType === 'DESTINATION_CLIENT_LEFT'){
@@ -80,7 +80,9 @@ export function handleConnection(query,socket,peers){
     let id = query.id;
     let lat = query.lat;
     let long = query.long;
-    
+    console.log(id);
+    console.log(lat);
+    console.log(long);
     if(!lat && !long){
       return {
         peers,
@@ -125,6 +127,7 @@ export function generateRandomID(){
 export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=>(handleTransaction)=>({
   onConnection: (peers)=>{
     try{
+      let childPeers = {};
       for (var id in peers) { peerStore[id] = peers[id]; }
 
       let peerGraph = graph();
@@ -133,16 +136,28 @@ export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=
       let mst = primMST(peerGraph);
       let nodes = getNodes();
 
-      //send the new peers to each other according to mst
+
+
       nodes.forEach((srcNode,index)=>{
         if(index == 0){
           return; // TODO: skip it beacuse it is the root node. Handle it better you FOOL
         }
-
-        let dst = mst[srcNode.getVertexId()]
+        let dst = mst[srcNode.getVertexId()];
         let dstNode = nodes[dst];
-        handleTransaction(srcNode.getName(),dstNode.getName());
+        let client = childPeers[index]?childPeers[index]:{};
+        client[dst] = dstNode;
       });
+
+      //send the new peers to each other according to mst
+      Object.keys(childPeers).forEach((childs,index)=>{
+        srcNode = nodes[index];
+        let childList = [];
+        Object.keys(childs).forEach((peer)=>{
+          childList.push(peer.getName()['name']);
+        });
+        handleTransaction(srcNode.getName(),childList);
+      });
+
 
       return {
         getNodes
@@ -155,11 +170,14 @@ export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=
   }
 });
 
-export const socketTransaction = (srcNode,dstNode)=>{
-  srcNode.socket.send({
+export const socketTransaction = (srcNode,childList)=>{
+  if(childList.length ==0){
+    return;
+  }
+  srcNode.socket.send(JSON.stringify({
     type:'PEER',
-    payload: dstNode['name']
-  });
+    childList
+  }));
 }
 
 export default peerserver;

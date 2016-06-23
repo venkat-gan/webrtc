@@ -5,8 +5,9 @@ console.log("openssl genrsa -out hacksparrow-key.pem 1024");
 console.log("openssl req -new -key hacksparrow-key.pem -out certrequest.csr");
 console.log("openssl x509 -req -in certrequest.csr -signkey hacksparrow-key.pem -out hacksparrow-cert.pem");
 
-import peerserver from './server/peerserver';
+import peerserver,{peerServerEventListner} from './server/peerserver';
 import webSocketServer from './server/webSocketServer';
+import {emitter} from './server/eventemitter';
 
 var path = require('path');
 var express = require('express');
@@ -42,3 +43,6 @@ var server = https.createServer(https_options, app).listen(9090, 'localhost');
 //peerserver
 let brokerServer = peerserver({server});
 brokerServer(webSocketServer);
+
+let listner = peerServerEventListner()(()=>{});
+emitter.addListners(listner);

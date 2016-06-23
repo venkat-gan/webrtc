@@ -69,7 +69,7 @@ describe('peerServer specifications::',()=>{
     const src = 'srcSampleID';
     const dst = 'dstSampleID';
 
-    it('should only accpet the recognized message types (LEAVE,CANDIDATE,OFFER,ANSWER) ',()=>{
+    it('should only accepet the recognized message types (LEAVE,CANDIDATE,OFFER,ANSWER) ',()=>{
       let data = {dst,id:src};
       const clients = {};
       clients[dst]={
@@ -94,7 +94,7 @@ describe('peerServer specifications::',()=>{
     });
 
     it('should remove the peer from the clients for DESTINATION_CLIENT_LEFT message type',()=>{
-      let leaveMessage = JSON.stringify({type: 'LEAVE',id: src, dst})
+      let leaveMessage = JSON.stringify({type: 'LEAVE',src: src, dst})
       const clients = {};
       clients[dst]={
            socket: 'sample1'
