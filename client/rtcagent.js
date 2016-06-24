@@ -1,4 +1,4 @@
-import { webSocketClient,getGeolocation,OPEN ,PEER,OFFER,ANSWER} from './wsclient';
+import { webSocketClient,getGeolocation,OPEN ,PEER,OFFER,ANSWER,CANDIDATE} from './wsclient';
 import curry from 'lodash/curry';
 
 export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
@@ -25,34 +25,42 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
           var connection=pm(peerId);
           connection.createOffer().then(function(sdp) {
             connection.setLocalDescription(sdp);
-            webSocketClientObj.sendObject({type:OFFER,src:webSocketClientObj.getId(),dest:peerId,sdp:sdp});
+            webSocketClientObj.sendObject({type:OFFER,src:webSocketClientObj.getId(),dst:peerId,sdp:sdp});
           },(e)=>{console.log(e)});
 
         })
       })
-      webSocketClientObj.subscribe(OFFER,function(){
-        var connection = pm(peerId);
-        var offer = webSocketClientObj.getOffer();
-        connection.setRemoteDescription(offer.sdp);
+      webSocketClientObj.subscribe(OFFER,function(msg){
+      //  var offer = webSocketClientObj.getOffers();
+        var connection = pm(msg.src);
+        connection.setRemoteDescription(new RTCSessionDescription(msg.sdp));
         connection.createAnswer().then(function(sdp) {
           connection.setLocalDescription(sdp);
-          webSocketClientObj.sendObject({type:ANSWER,src:webSocketClientObj.getId(),dest:offer.src,sdp:sdp});
+          webSocketClientObj.sendObject({type:ANSWER,src:webSocketClientObj.getId(),dst:msg.src,sdp:sdp});
         },(e)=>{console.log(e)});
 
       })
       webSocketClientObj.subscribe(ANSWER,function(msg){
+      //  var offer = webSocketClientObj.getOffers();
+      console.log("msg",msg)
+        var connection = pm(msg.src);
+        connection.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+      })
+      webSocketClientObj.subscribe(CANDIDATE,function(){
         var connection = pm(peerId);
-        var offer = webSocketClientObj.getOffer();
-        connection.setRemoteDescription(offer.sdp);
+
       })
       function PeerConnectionManager(RTCPeerConnection){
         var peerConnections={};
         return (id)=>{
           if(!peerConnections[id]){
-              peerConnections[id]=new RTCPeerConnection()
+            console.log(id);
+              peerConnections[id]=new RTCPeerConnection(null,null)
           }
+
           peerConnections[id].onicecandidate = function (evt) {
-             webSocketClientObj.send(JSON.stringify({ type:CANDIDATE, candidate:evt.candidate,src:webSocketClientObj.getId(),dest:id }));
+            console.log("onicecandidate");
+             webSocketClientObj.send(JSON.stringify({ type:CANDIDATE, candidate:evt.candidate,src:webSocketClientObj.getId(),dst:id }));
          };
           return peerConnections[id];
         }

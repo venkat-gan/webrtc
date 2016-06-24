@@ -38,7 +38,7 @@ app.get('*', function(req, res) {
   res.sendFile(path.join(__dirname, 'dist','index.html'));
 });
 
-var server = https.createServer(https_options, app).listen(9090, 'localhost');
+var server = https.createServer(https_options, app).listen(9090);
 
 //peerserver
 let brokerServer = peerserver({server});
