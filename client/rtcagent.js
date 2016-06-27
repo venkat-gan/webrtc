@@ -2,7 +2,7 @@ import { webSocketClient,getGeolocation,OPEN ,PEER,OFFER,ANSWER,CANDIDATE} from 
 import curry from 'lodash/curry';
 
 export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
-
+AdapterJS.webRTCReady(function(isUsingPlugin ){
   var createOfferConnection=null;
   var createAnswerConnection=null;
   var webSocketClientObj=null;
@@ -10,7 +10,7 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
   locationMontior(function(position){
     if(position){
       if(!webSocketClientObj){
-        const webSocket = new WebSocket(`wss://localhost:9090/rtcserver?lat=${position.coords.latitude}&long=${position.coords.longitude}`)
+        const webSocket = new WebSocket(`wss://vimal-zt58.tsi.zohocorpin.com:9090/rtcserver?lat=${position.coords.latitude}&long=${position.coords.longitude}`)
         webSocketClientObj=new webSocketClient(webSocket);
       }
       else{
@@ -23,10 +23,14 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
         var peerIds = webSocketClientObj.getPeers();
         peerIds.forEach((peerId)=>{
           var connection=pm(peerId);
+          global.sendChannel=connection.createDataChannel('sendDataChannel',null);
           connection.createOffer().then(function(sdp) {
-            connection.setLocalDescription(sdp);
+            connection.setLocalDescription(sdp,()=>{},(e)=>{console.log(e)});
             webSocketClientObj.sendObject({type:OFFER,src:webSocketClientObj.getId(),dst:peerId,sdp:sdp});
           },(e)=>{console.log(e)});
+
+          sendChannel.onopen = ()=>{console.log("open")};
+          sendChannel.onclose = ()=>{console.log("close")};
 
         })
       })
@@ -35,20 +39,29 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
         var connection = pm(msg.src);
         connection.setRemoteDescription(new RTCSessionDescription(msg.sdp));
         connection.createAnswer().then(function(sdp) {
-          connection.setLocalDescription(sdp);
+          connection.setLocalDescription(sdp,()=>{},(e)=>{console.log(e)});
+          connection.ondatachannel = (e)=>{
+            global.receiveChannel = event.channel;
+             receiveChannel.onmessage = (msg)=>{
+               console.log(msg);
+             };
+             receiveChannel.onopen = ()=>{console.log("r-open")};
+             receiveChannel.onclose = ()=>{console.log("r-close")};
+          }
           webSocketClientObj.sendObject({type:ANSWER,src:webSocketClientObj.getId(),dst:msg.src,sdp:sdp});
         },(e)=>{console.log(e)});
 
       })
       webSocketClientObj.subscribe(ANSWER,function(msg){
       //  var offer = webSocketClientObj.getOffers();
-      console.log("msg",msg)
         var connection = pm(msg.src);
         connection.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-      })
-      webSocketClientObj.subscribe(CANDIDATE,function(){
-        var connection = pm(peerId);
 
+      })
+      webSocketClientObj.subscribe(CANDIDATE,function(msg){
+        console.log("CANDIDATE",msg)
+        var connection = pm(msg.src);
+        connection.addIceCandidate(new RTCIceCandidate(msg.candidate))
       })
       function PeerConnectionManager(RTCPeerConnection){
         var peerConnections={};
@@ -57,17 +70,21 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
             console.log(id);
               peerConnections[id]=new RTCPeerConnection(null,null)
           }
-
+          else{
+            console.log("old")
+          }
           peerConnections[id].onicecandidate = function (evt) {
-            console.log("onicecandidate");
-             webSocketClientObj.send(JSON.stringify({ type:CANDIDATE, candidate:evt.candidate,src:webSocketClientObj.getId(),dst:id }));
+            if(evt.candidate )
+             webSocketClientObj.sendObject({ type:CANDIDATE, candidate:evt.candidate,src:webSocketClientObj.getId(),dst:id });
          };
+         console.log(peerConnections[id].onicecandidate)
           return peerConnections[id];
         }
       }
 
     }
   })
+})
 })
 
 
