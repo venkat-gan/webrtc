@@ -5,9 +5,11 @@ console.log("openssl genrsa -out hacksparrow-key.pem 1024");
 console.log("openssl req -new -key hacksparrow-key.pem -out certrequest.csr");
 console.log("openssl x509 -req -in certrequest.csr -signkey hacksparrow-key.pem -out hacksparrow-cert.pem");
 
-import peerserver,{peerServerEventListner,socketTransaction} from './server/peerserver';
-import webSocketServer from './server/webSocketServer';
-import {emitter} from './server/eventemitter';
+import {peerserver,
+        webSocketServer,
+        emitter,
+        peerServerEventListner,
+        socketTransaction} from './server';
 
 var path = require('path');
 var express = require('express');
@@ -16,17 +18,16 @@ var config = require('./webpack.config');
 var https = require('https');
 var fs = require('fs');
 var key = fs.readFileSync('./hacksparrow-key.pem');
-var cert = fs.readFileSync('./hacksparrow-cert.pem')
-var WebSocketServer = require('ws').Server;
-var url = require('url')
+var cert = fs.readFileSync('./hacksparrow-cert.pem');
+var url = require('url');
 
-console.log(peerserver);
-console.log(webSocketServer);
+
 
 var https_options = {
     key: key,
     cert: cert
 };
+
 
 var app = express();
 var compiler = webpack(config);

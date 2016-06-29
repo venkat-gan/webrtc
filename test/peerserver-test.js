@@ -206,7 +206,7 @@ describe('peerServer specifications::',()=>{
       const query = { id: 111, lat:0,long:1};
       let clients = {};
       let{clientID,peers,message} = handleConnection(query,'sampleSocket',clients);
-      expect(candidates).to.eql([ { '111': { socket: 'sampleSocket', coordinates: {lat:0,long:1} } } ]);
+      expect(candidates).to.eql([ { '111': { socket: 'sampleSocket', name: 111, coordinates: {lat:0,long:1} } } ]);
     })
 
   });

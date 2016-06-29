@@ -9,7 +9,7 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
   locationMontior(function(position){
     if(position){
       if(!webSocketClientObj){
-        const webSocket = new WebSocket(`wss://vimal-zt58.tsi.zohocorpin.com:9090/rtcserver?lat=${position.coords.latitude}&long=${position.coords.longitude}`)
+        const webSocket = new WebSocket(`wss://localhost:9090/rtcserver?lat=${position.coords.latitude}&long=${position.coords.longitude}`)
         webSocketClientObj=new webSocketClient(webSocket);
       }
       else{
@@ -19,7 +19,9 @@ export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
       webSocketClientObj.subscribe(OPEN,function(){
       })
       webSocketClientObj.subscribe(PEER,function(msg){
+        console.log(msg,peerIds)
         var peerIds = webSocketClientObj.getPeers();
+        console.log(msg,peerIds)
         peerIds.forEach((peerId)=>{
           var connection=pm(peerId);
           global.sendChannel=connection.createDataChannel('sendDataChannel',null);

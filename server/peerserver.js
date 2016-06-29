@@ -18,6 +18,7 @@ const peerserver = (option) => (socketServer) => {
 
 export function handleClosingConnection(peers,clientID){
     delete peers[clientID];
+
     return {
       peers: Object.assign({},peers)
     }
@@ -130,6 +131,7 @@ export const peerServerEventListner = (peerStore = {},minimumSpanningTree = {})=
 
     try{
       let childPeers = {};
+      let peerStore = {};
       for (var id in peers) { peerStore[id] = peers[id]; }
 
       let peerGraph = graph();
