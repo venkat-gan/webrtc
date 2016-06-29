@@ -30,11 +30,13 @@ export const webSocketClient = ( webSocket ) => {
   }
 
   webSocket.onmessage=(e)=>{
-    var msg=JSON.parse(e.data);
-    console.log(msg)
+        console.log(e.data)
+    var msg=e.data;
+    console.log("msg",msg)
     if(!msg) return;
     switch(msg.type){
       case OPEN:
+
         id=msg.clientID;
       break
       case PEER:
@@ -60,6 +62,7 @@ export const webSocketClient = ( webSocket ) => {
       default:
       return;
     }
+
     listeners[msg.type].forEach((listener)=>{
       listener(msg)
     })
@@ -75,7 +78,7 @@ export const webSocketClient = ( webSocket ) => {
       return id
     },
     sendObject(ob){
-      webSocket.send(JSON.stringify(ob))
+      webSocket.send(ob)
     },
     subscribe
   }

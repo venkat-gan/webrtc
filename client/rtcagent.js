@@ -2,7 +2,6 @@ import { webSocketClient,getGeolocation,OPEN ,PEER,OFFER,ANSWER,CANDIDATE} from 
 import curry from 'lodash/curry';
 
 export const rtcAgent = curry((navigator,WebSocket,RTCPeerConnection) => {
-AdapterJS.webRTCReady(function(isUsingPlugin ){
   var createOfferConnection=null;
   var createAnswerConnection=null;
   var webSocketClientObj=null;
@@ -84,7 +83,6 @@ AdapterJS.webRTCReady(function(isUsingPlugin ){
 
     }
   })
-})
 })
 
 
