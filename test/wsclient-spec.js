@@ -5,11 +5,11 @@ var mockWebSocket=new MockWebSocket()
 var client=webSocketClient(mockWebSocket);
 //MockWebSocket.attachEvents(client);
 describe('WebSocket', function () {
-  it('receive message', function () {
+  xit('receive message', function () {
     mockWebSocket.onmessage({data:{type:"OPEN",clientID:1}});
     expect(client.getId()).toEqual(1)
   })
-  it('send message', function () {
+  xit('send message', function () {
     client.sendObject({a:1});
     expect({"a":1}).toEqual(mockWebSocket.lastSend)
   })
